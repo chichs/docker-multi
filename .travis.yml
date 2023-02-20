@@ -1,0 +1,23 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t sicsup/multi-app -f ./frontend/Dockerfile.dev ./frontend
+
+script:
+  - docker run -e CI=true sicsup/multi-app npm run test
+
+after_success:
+  - docker build -t sicsup/docker-frontend ./frontend
+  - docker build -t sicsup/docker-backend ./backend
+  - docker build -t sicsup/docker-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push sicsup/docker-frontend
+  - docker push sicsup/docker-backend
+  - docker push sicsup/docker-nginx
